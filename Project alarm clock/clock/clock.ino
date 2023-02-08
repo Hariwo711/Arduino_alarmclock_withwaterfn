@@ -11,7 +11,7 @@
 #include <LiquidCrystal_I2C.h>  // includes the LiquidCrystal Library
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 #include <dht.h>  //temp and humitity sensor
-
+#include <Servo.h>
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
 
@@ -45,7 +45,6 @@ const int ledPin = 13;
 const int buttonPin1 = 10;
 const int buttonPin2 = 11;
 const int buttonPin3 = 12;
-const int servo = 5;
 const int buzzer = 4;
 
 int buttonState = 0;
@@ -56,15 +55,17 @@ int alarmonoroff = 0;
 int bigmode = 0;
 
 //alarm intergers
-int alarmhour = 0;
-int alarmminute = 0;
+int alarmhour = 23;
+int alarmminute = 10;
 
 int easteregg = 0;
 
 int timehour = 0;
 int timeminute = 0;
 int timesecond = 0;
+int turnoffalarm = 0;
 
+Servo myservo;
 
 void setup() {
   Serial.begin(9600);
@@ -86,13 +87,18 @@ void setup() {
   pinMode(buttonPin2, INPUT);
   pinMode(buttonPin3, INPUT);
 
-  pinMode(servo, OUTPUT);
   pinMode(buzzer, OUTPUT);
+
+  myservo.attach(5);
+  myservo.write(180);
 }
 
 
 void loop() {
-  button();
+    button();
+
+  
+  // digitalWrite(buzzer , LOW);
   // Serial.print("Set alarm is:");
   // Serial.print(alarmhour);
   // Serial.print(":");
@@ -105,6 +111,7 @@ void loop() {
 
   if (setalarmmode == 0){
   timeget();
+
   if (mode == 0){
     defaultalarm_screen();
     } 
@@ -124,12 +131,35 @@ void loop() {
     // test();
   }
 
-  if (alarmonoroff == 1){//setting up buzzer and water
-    alarm();
+  if (alarmonoroff == 1 && setalarmmode == 0){//setting up buzzer and water
+    if (timeminute == alarmminute && timehour == alarmhour){
+      alarm();
+          if (timesecond >= 30){
+              if ((timesecond% 2) == 0){
+                  myservo.write(180);
+                }
+              else{
+                  waterspray();
+                  } 
+    }
   }
+  if (alarmonoroff == 0){
+    digitalWrite(buzzer, LOW);
+  }
+  if (timeminute == alarmminute+1 && timehour == alarmhour){
+      if ((timesecond% 2) == 0){
+          myservo.write(180);
+      }
+      else{
+        waterspray();
+      }     
+  }
+  // turnoffalarm = 0;
+  // Serial.println(turnoffalarm);
   // Serial.print("Button Mode is");
   // Serial.println(mode);
   // change_alarm();
+}
 }
 
 void timeget() {
@@ -198,15 +228,19 @@ void setalarm(){
 
 
 void alarm() {
-  if (timeminute == alarmminute && timehour == alarmhour){
+  if ((timesecond% 2) == 0){
     digitalWrite(buzzer , HIGH);
-    delay(1000);
-    digitalWrite(buzzer , LOW); 
-    delay(1000);
   }
+  else{
+    digitalWrite(buzzer , LOW);
+  }
+
 }
 
-
+void waterspray(){
+  myservo.write(90);
+  delay(1000); 
+}
 void button() {
   if (setalarmmode==0){
       // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
@@ -292,7 +326,7 @@ void printDateTime(const RtcDateTime& dt) {
              dt.Second());
   timehour = dt.Hour();
   timeminute = dt.Minute();
-  // timesecond = dt.Second(); //if needed
+  timesecond = dt.Second(); //if needed
   lcd.print(datestring);
 }
 
