@@ -14,6 +14,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #include <Servo.h>
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
+#include "pitches.h"
 
 byte clockChar[] = {B00000, B01110, B10101, B10101, B10111, B10001, B01110, B00000};
 byte alarmChar[] = {B00100, B01110, B01110, B01110, B11111, B00000, B00100, B00000};
@@ -31,6 +32,7 @@ byte specialChar[] = {
 };
 
 
+#define BUZZER_PIN 4
 
 
 ThreeWire myWire(8, 7, 9);  // DAT, CLK, RST
@@ -54,9 +56,10 @@ int setalarmmode = 0;
 int alarmonoroff = 0;
 int bigmode = 0;
 
+int selectedsong = 0;
 //alarm intergers
-int alarmhour = 23;
-int alarmminute = 10;
+int alarmhour = 14;
+int alarmminute = 05;
 
 int easteregg = 0;
 
@@ -94,10 +97,12 @@ void setup() {
 }
 
 
-void loop() {
+void loop() {    
     button();
+ if (alarmonoroff == 0){
+    digitalWrite(buzzer, LOW);
+  }
 
-  
   // digitalWrite(buzzer , LOW);
   // Serial.print("Set alarm is:");
   // Serial.print(alarmhour);
@@ -107,7 +112,7 @@ void loop() {
   // String p1 = " : ";
   // Serial.println(timehour + p1 + timeminute); //testing if correct time is get
   // Serial.println(timesecond);
-
+//  Serial.println(alarmonoroff);
 
   if (setalarmmode == 0){
   timeget();
@@ -121,6 +126,7 @@ void loop() {
   if (mode == 2) {
     temp();
     }
+
   }  
   if (easteregg == 1){
     test();
@@ -130,10 +136,25 @@ void loop() {
     setalarm();
     // test();
   }
+  if (setalarmmode == 2){
+    songsselect();
+  }
 
   if (alarmonoroff == 1 && setalarmmode == 0){//setting up buzzer and water
     if (timeminute == alarmminute && timehour == alarmhour){
-      alarm();
+      // alarm();
+      if(selectedsong==0){
+        alarm();
+      }
+      if(selectedsong==1){
+        songplayer_nokia();
+      }
+      if(selectedsong==2){
+        songplayer_pacman();
+      }
+        
+      
+      
           if (timesecond >= 30){
               if ((timesecond% 2) == 0){
                   myservo.write(180);
@@ -146,14 +167,15 @@ void loop() {
   if (alarmonoroff == 0){
     digitalWrite(buzzer, LOW);
   }
-  if (timeminute == alarmminute+1 && timehour == alarmhour){
-      if ((timesecond% 2) == 0){
-          myservo.write(180);
-      }
-      else{
-        waterspray();
-      }     
-  }
+  // if (timeminute == alarmminute+1 && timehour == alarmhour){
+  //     if ((timesecond% 2) == 0){
+  //         myservo.write(180);
+  //         digitalWrite(buzzer , LOW);
+  //     }
+  //     else{
+  //       waterspray();
+  //     }     
+  // }
   // turnoffalarm = 0;
   // Serial.println(turnoffalarm);
   // Serial.print("Button Mode is");
@@ -228,6 +250,7 @@ void setalarm(){
 
 
 void alarm() {
+  
   if ((timesecond% 2) == 0){
     digitalWrite(buzzer , HIGH);
   }
@@ -281,7 +304,7 @@ void button() {
       lcd.clear();
     }
 
-    if (setalarmmode == 2){
+    if (setalarmmode == 3){
       setalarmmode = 0;
     }
   if (setalarmmode == 1){
@@ -307,6 +330,19 @@ void button() {
   // if(digitalRead(buttonPin2)== HIGH){
   //   easteregg = 1;
   // }
+
+  if(setalarmmode == 2){
+    if(selectedsong == 3){
+      selectedsong = 0;
+      lcd.clear();
+    }
+    if(digitalRead(buttonPin2)==HIGH){
+      selectedsong++;
+      delay(200);
+      Serial.println(selectedsong);
+    }
+  }
+
 }
 
 
