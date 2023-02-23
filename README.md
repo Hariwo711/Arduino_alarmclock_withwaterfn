@@ -1,2 +1,2 @@
 # Arduino_alarmclock_withwaterfn
-Arduino alarm clock that uses water to wake you up
+Arduino alarm clock which uses water to wake you up
